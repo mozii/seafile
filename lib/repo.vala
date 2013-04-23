@@ -135,4 +135,11 @@ public class DeletedEntry : Object {
     public int64 file_size { get; set; }
 }
 
+public class RepoUserToken : Object {
+
+    public string repo_id { get; set; }
+    public string email { get; set; }
+    public string token { get; set; }
+}
+
 } // namespace

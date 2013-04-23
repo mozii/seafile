@@ -160,6 +160,21 @@ char *
 seaf_repo_manager_get_email_by_token (SeafRepoManager *manager,
                                       const char *repo_id,
                                       const char *token);
+char *
+seaf_repo_manager_generate_repo_token (SeafRepoManager *mgr,
+                                       const char *repo_id,
+                                       const char *email,
+                                       GError **error);
+
+GList *
+seaf_repo_manager_get_repo_token_list (SeafRepoManager *mgr,
+                                       const char *repo_id,
+                                       GError **error);
+GList *
+seaf_repo_manager_get_repo_token_list_by_email (SeafRepoManager *mgr,
+                                                const char *repo_id,
+                                                const char *email,
+                                                GError **error);
 
 gint64
 seaf_repo_manager_get_repo_size (SeafRepoManager *mgr, const char *repo_id);

@@ -683,6 +683,29 @@ char* seafile_get_repo_token_nonnull (const char *repo_id,
                                       GError **error);
 
 /**
+ * Generate a new token for (repo_id, email) and return it
+ */
+char *
+seafile_generate_repo_token (const char *repo_id,
+                             const char *email,
+                             GError **error);
+
+/**
+ * Return a list of (repo_id, remail, token) assoicaited with the given repo_id
+ */
+GList *
+seafile_get_repo_token_list (const char *repo_id,
+                             GError **error);
+
+/**
+ * Return a list of (repo_id, remail, token) assoicaited with the given repo_id and email
+ */
+GList *
+seafile_get_repo_token_list_by_email (const char *repo_id,
+                                      const char *email,
+                                      GError **error);
+
+/**
  * create a repo on seahub
  */
 char *

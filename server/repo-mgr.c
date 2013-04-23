@@ -964,6 +964,129 @@ seaf_repo_manager_get_repo_token_nonnull (SeafRepoManager *mgr,
     return token;
 }
 
+static int
+add_repo_token (SeafRepoManager *mgr,
+                const char *repo_id,
+                const char *email,
+                const char *token,
+                GError **error)
+{
+    char sql[512];
+
+    snprintf (sql, sizeof(sql),
+              "INSERT INTO RepoUserToken VALUES ('%s', '%s', '%s')",
+              repo_id, email, token);
+
+    if (seaf_db_query (mgr->seaf->db, sql) < 0) {
+        seaf_warning ("failed to add repo token. repo = %s, email = %s\n",
+                      repo_id, email);
+        g_set_error (error, SEAFILE_DOMAIN, SEAF_ERR_GENERAL, "DB error");
+        return -1;
+    }
+
+    return 0;
+}
+
+char *
+seaf_repo_manager_generate_repo_token (SeafRepoManager *mgr,
+                                       const char *repo_id,
+                                       const char *email,
+                                       GError **error)
+{
+    char *token = generate_repo_token ();
+    if (add_repo_token (mgr, repo_id, email, token, error) < 0) {
+        g_free (token);        
+        return NULL;
+    }
+
+    return token;
+}
+
+static
+collect_repo_token (SeafDBRow *row, void *data)
+{
+    GList **ret_list = data;
+    const char *repo_id, *email, *token;
+
+    repo_id = seaf_db_row_get_column_text (row, 0);
+    email = seaf_db_row_get_column_text (row, 1);
+    token = seaf_db_row_get_column_text (row, 2);
+
+    SeafileRepoUserToken *repo_user_token;
+    repo_user_token = g_object_new (SEAFILE_TYPE_REPO_USER_TOKEN,
+                                    "repo_id", repo_id,
+                                    "email", email,
+                                    "token", token,
+                                    NULL);
+
+    *ret_list = g_list_prepend (*ret_list, repo_user_token);
+    
+    return TRUE;
+}
+
+GList *
+seaf_repo_manager_get_repo_token_list (SeafRepoManager *mgr,
+                                       const char *repo_id,
+                                       GError **error)
+{
+    GList *ret_list = NULL;
+    char sql[256];
+    gboolean db_err = FALSE;
+
+    if (!repo_exists_in_db (mgr->seaf->db, repo_id, &db_err)) {
+        if (db_err) {
+            g_set_error (error, SEAFILE_DOMAIN, SEAF_ERR_GENERAL, "DB error");
+        }
+        return NULL;
+    }
+
+    snprintf (sql, sizeof(sql), 
+              "SELECT * FROM RepoUserToken WHERE repo_id='%s'",
+              repo_id);
+
+    int n_row = seaf_db_foreach_selected_row (mgr->seaf->db, sql,
+                                              collect_repo_token, &ret_list);
+    if (n_row < 0) {
+        seaf_warning ("DB error when get token for repo %s.\n",
+                      repo_id);
+        g_set_error (error, SEAFILE_DOMAIN, SEAF_ERR_GENERAL, "DB error");
+    }
+
+    return g_list_reverse(ret_list);
+}
+
+GList *
+seaf_repo_manager_get_repo_token_list_by_email (SeafRepoManager *mgr,
+                                                const char *repo_id,
+                                                const char *email,
+                                                GError **error)
+{
+    GList *ret_list = NULL;
+    char sql[256];
+    gboolean db_err = FALSE;
+
+    if (!repo_exists_in_db (mgr->seaf->db, repo_id, &db_err)) {
+        if (db_err) {
+            g_set_error (error, SEAFILE_DOMAIN, SEAF_ERR_GENERAL, "DB error");
+        }
+        return NULL;
+    }
+
+    snprintf (sql, sizeof(sql), 
+              "SELECT * FROM RepoUserToken WHERE repo_id='%s' and email='%s'",
+              repo_id, email);
+
+    int n_row = seaf_db_foreach_selected_row (mgr->seaf->db, sql,
+                                              collect_repo_token, &ret_list);
+    if (n_row < 0) {
+        seaf_warning ("DB error when get token for repo %s, email %s.\n",
+                      repo_id, email);
+        g_set_error (error, SEAFILE_DOMAIN, SEAF_ERR_GENERAL, "DB error");
+    }
+
+    return g_list_reverse(ret_list);
+}
+
 char *
 seaf_repo_manager_get_repo_token (SeafRepoManager *mgr,
                                   const char *repo_id,

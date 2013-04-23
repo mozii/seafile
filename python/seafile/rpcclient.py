@@ -550,7 +550,7 @@ class SeafServerThreadedRpcClient(ccnet.RpcClientBase):
         pass
     set_repo_token = seafile_set_repo_token
 
-    @searpc_func("string", ["string", "string", "init"])
+    @searpc_func("string", ["string", "string"])
     def seafile_get_repo_token_nonnull(repo_id, email):
         """Get the token of the repo for the email user. If the token does not
         exist, a new one is generated and returned.
@@ -558,6 +558,23 @@ class SeafServerThreadedRpcClient(ccnet.RpcClientBase):
         """
         pass
     get_repo_token_nonnull = seafile_get_repo_token_nonnull
+
+    
+    @searpc_func("string", ["string", "string"])
+    def seafile_generate_repo_token(repo_id, email):
+        pass
+    generate_repo_token = seafile_generate_repo_token
+
+    
+    @searpc_func("objlist", ["string"])
+    def seafile_get_repo_token_list(repo_id):
+        pass
+    get_repo_token_list = seafile_get_repo_token_list
+
+    @searpc_func("objlist", ["string", "string"])
+    def seafile_get_repo_token_list_by_email(repo_id, email):
+        pass
+    get_repo_token_list_by_email = seafile_get_repo_token_list_by_email
 
 
     ###### quota ##########
